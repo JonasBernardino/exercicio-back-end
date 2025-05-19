@@ -1,6 +1,7 @@
 package com.back_end.controller;
 
 import com.back_end.model.Aluno;
+import com.back_end.model.Endereco;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -13,42 +14,25 @@ public class AlunoController {
             new Aluno(3L, "Pedro", "pedro@email.com", 5.0),
             new Aluno(1L, "João", "joao@email.com", 8.5),
             new Aluno(2L, "Maria", "maria@email.com", 10.0)
-
     ));
 
-    //    01
+    private List<Endereco> enderecos = new ArrayList<>();
+
+    // 1. Boas-vindas
     @GetMapping("/bem-vindo/{nome}")
-    public String boasVindas(@PathVariable String nome) {
+    public String exibirMensagemBoasVindas(@PathVariable String nome) {
         return "Bem vindo " + nome + "!";
     }
 
-    //    02
-    @GetMapping("/aprovados")
-    public List<Aluno> getAprovados() {
-        List<Aluno> aprovados = new ArrayList<>();
-        for (Aluno aluno : alunos) {
-            if (aluno.getNota() >= 7.0) {
-                aprovados.add(aluno);
-            }
-        }
-        return aprovados;
+    // 2. CRUD de Alunos
+    @PostMapping
+    public Boolean cadastrarAluno(@RequestBody Aluno aluno) {
+        alunos.add(aluno);
+        return true;
     }
 
-    //    03
-    @GetMapping("/email/{email}")
-    public Aluno buscarPorEmail(@PathVariable String email) {
-        email = email.toLowerCase();
-        for (Aluno aluno : alunos) {
-            if (aluno.getEmail().toLowerCase().equals(email)) {
-                return aluno;
-            }
-        }
-        return null;
-    }
-
-    //      04
     @PutMapping("/{id}/nota")
-    public String atualizarNota(@PathVariable Long id, @RequestBody Double nota) {
+    public String atualizarNotaAluno(@PathVariable Long id, @RequestBody Double nota) {
         for (Aluno aluno : alunos) {
             if (aluno.getId().equals(id)) {
                 aluno.setNota(nota);
@@ -58,10 +42,8 @@ public class AlunoController {
         return "Aluno não encontrado.";
     }
 
-
-    //    05
     @DeleteMapping("/{id}")
-    public String removerAluno(@PathVariable Long id) {
+    public String removerAlunoPorId(@PathVariable Long id) {
         for (Aluno aluno : alunos) {
             if (aluno.getId().equals(id)) {
                 alunos.remove(aluno);
@@ -71,32 +53,51 @@ public class AlunoController {
         return "Aluno não encontrado.";
     }
 
-    //    06
+    // 3. Consultas e filtros
+    @GetMapping("/email/{email}")
+    public Aluno buscarAlunoPorEmail(@PathVariable String email) {
+        email = email.toLowerCase();
+        for (Aluno aluno : alunos) {
+            if (aluno.getEmail().toLowerCase().equals(email)) {
+                return aluno;
+            }
+        }
+        return null;
+    }
+
+    @GetMapping("/aprovados")
+    public List<Aluno> listarAlunosAprovados() {
+        List<Aluno> aprovados = new ArrayList<>();
+        for (Aluno aluno : alunos) {
+            if (aluno.getNota() >= 7.0) {
+                aprovados.add(aluno);
+            }
+        }
+        return aprovados;
+    }
+
     @GetMapping("/ordenados")
-    public List<Aluno> listarOrdenados() {
+    public List<Aluno> listarAlunosOrdenadosPorNome() {
         return alunos.stream()
                 .sorted(Comparator.comparing(Aluno::getNome)).toList();
     }
 
-    //    07
     @GetMapping("/media")
-    public double calcularMedia() {
+    public double calcularMediaNotas() {
         double soma = 0;
-        for(Aluno aluno : alunos){
-            soma = soma + aluno.getNota();
+        for (Aluno aluno : alunos) {
+            soma += aluno.getNota();
         }
         return soma / alunos.size();
     }
 
-    //08
     @GetMapping("/quantidade")
-    public int quantidadeAlunos() {
+    public int contarTotalDeAlunos() {
         return alunos.size();
     }
 
-    //    09
     @GetMapping("/relatorio")
-    public Map<String, Object> gerarRelatorio() {
+    public Map<String, Object> gerarRelatorioNotas() {
         Map<String, Object> relatorio = new HashMap<>();
         long aprovados = alunos.stream().filter(a -> a.getNota() >= 7).count();
         long reprovados = alunos.size() - aprovados;
@@ -108,4 +109,87 @@ public class AlunoController {
         relatorio.put("menorNota", alunos.stream().mapToDouble(Aluno::getNota).min().orElse(0));
         return relatorio;
     }
+
+    // 4. Endereços
+    @PostMapping("/enderecos")
+    public Endereco cadastrarEndereco(@RequestBody Endereco endereco) {
+        enderecos.add(endereco);
+        return endereco;
+    }
+
+    @PutMapping("/{id}/endereco")
+    public Aluno atualizarEnderecoDoAluno(@PathVariable Long id, @RequestBody Endereco novoEndereco) {
+        for (Aluno aluno : alunos) {
+            if (aluno.getId().equals(id)) {
+                aluno.setEndereco(novoEndereco);
+                return aluno;
+            }
+        }
+        return null;
+    }
+
+    @GetMapping("/{id}/endereco")
+    public Endereco consultarEnderecoDoAluno(@PathVariable Long id) {
+        for (Aluno aluno : alunos) {
+            if (aluno.getId().equals(id)) {
+                return aluno.getEndereco();
+            }
+        }
+        return null;
+    }
+
+    @GetMapping("/cidade/{nomeCidade}")
+    public List<Aluno> buscarAlunosPorCidade(@PathVariable String nomeCidade) {
+        List<Aluno> resultado = new ArrayList<>();
+        for (Aluno aluno : alunos) {
+            if (aluno.getEndereco().getCidade().equals(nomeCidade)) {
+                resultado.add(aluno);
+            }
+        }
+        return resultado;
+    }
+
+    @GetMapping("/cep/{cep}")
+    public List<Aluno> buscarAlunosPorCep(@PathVariable String cep) {
+        List<Aluno> resultado = new ArrayList<>();
+        for (Aluno aluno : alunos) {
+            Endereco endereco = aluno.getEndereco();
+            if (endereco != null && endereco.getCep().equals(cep)) {
+                resultado.add(aluno);
+            }
+        }
+        return resultado;
+    }
+
+    @PutMapping("/{idAluno}/endereco/{idEndereco}")
+    public String associarEnderecoExistenteAoAluno(@PathVariable Long idAluno, @PathVariable Long idEndereco) {
+        Aluno alunoEncontrado = null;
+        Endereco enderecoEncontrado = null;
+
+        for (Aluno aluno : alunos) {
+            if (aluno.getId().equals(idAluno)) {
+                alunoEncontrado = aluno;
+                break;
+            }
+        }
+
+        for (Endereco endereco : enderecos) {
+            if (endereco.getId().equals(idEndereco)) {
+                enderecoEncontrado = endereco;
+                break;
+            }
+        }
+
+        if (alunoEncontrado == null) {
+            return "Aluno não encontrado.";
+        }
+
+        if (enderecoEncontrado == null) {
+            return "Endereço não encontrado.";
+        }
+
+        alunoEncontrado.setEndereco(enderecoEncontrado);
+        return "Endereço associado ao aluno com sucesso!";
+    }
+
 }

@@ -1,4 +1,4 @@
-package com.back_end.parteII.model;
+package com.back_end.model;
 
 public class Endereco {
     private Long id;

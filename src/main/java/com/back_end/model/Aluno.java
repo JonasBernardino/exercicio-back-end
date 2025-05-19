@@ -6,6 +6,8 @@ public class Aluno {
     private String email;
     private double nota;
 
+    private Endereco endereco;
+
     public Aluno() {
     }
 
@@ -46,5 +48,13 @@ public class Aluno {
 
     public void setNota(double nota) {
         this.nota = nota;
+    }
+
+    public Endereco getEndereco() {
+        return endereco;
+    }
+
+    public void setEndereco(Endereco endereco) {
+        this.endereco = endereco;
     }
 }
