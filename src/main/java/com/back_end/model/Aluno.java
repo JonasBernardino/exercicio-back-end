@@ -1,11 +1,18 @@
 package com.back_end.model;
 
+import jakarta.persistence.*;
+
+@Entity
 public class Aluno {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String nome;
     private String email;
     private double nota;
 
+    @OneToOne(cascade = CascadeType.ALL)
     private Endereco endereco;
 
     public Aluno() {
